@@ -1,0 +1,345 @@
+{
+  "info": {
+    "name": "Weather API Integration - Group 9",
+    "_postman_id": "12345678-1234-1234-1234-123456789000",
+    "description": "Postman collection for Weather API Integration Service\nCourse: Web Services Integration and Security - Assignment 2\nTeam: Dawit Tamiru, Daniel Diriba, Jamal Aman, Fuad Hassen, Abdurehim Kedir",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Check if the API is running"
+      },
+      "response": []
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Get Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('token', jsonData.token);",
+                  "    pm.test('Token received', function () {",
+                  "        pm.expect(jsonData.token).to.be.a('string');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "token"]
+            },
+            "description": "Generate JWT token for API authentication. Token is automatically saved to environment variable."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Weather Endpoints",
+      "item": [
+        {
+          "name": "Get Weather - Single City",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "pm.test('Response contains weather data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.expect(jsonData.data.city).to.be.a('string');",
+                  "    pm.expect(jsonData.data.temperature).to.be.an('object');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/weather/:city",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "weather", ":city"],
+              "variable": [
+                {
+                  "key": "city",
+                  "value": "London",
+                  "description": "City name (e.g., London, Paris, Tokyo)"
+                }
+              ]
+            },
+            "description": "Get current weather data for a single city. Requires JWT token in Authorization header."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Weather - Multiple Cities",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success and results', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.results).to.be.an('array');",
+                  "    pm.expect(jsonData.count).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('Results contain city data', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    jsonData.results.forEach(function(result) {",
+                  "        pm.expect(result.city).to.be.a('string');",
+                  "        pm.expect(result.success).to.be.a('boolean');",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cities\": [\n    \"London\",\n    \"Paris\",\n    \"Tokyo\",\n    \"New York\",\n    \"Sydney\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/weather/multiple",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "weather", "multiple"]
+            },
+            "description": "Get weather data for multiple cities in a single request. Requires JWT token and array of city names in request body."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Weather - Invalid City (Error Test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 502', function () {",
+                  "    pm.response.to.have.status(502);",
+                  "});",
+                  "",
+                  "pm.test('Response has error message', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "    pm.expect(jsonData.message).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/weather/InvalidCityName123456",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "weather", "InvalidCityName123456"]
+            },
+            "description": "Test error handling with an invalid city name"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Unauthorized - No Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates missing auth', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "    pm.expect(jsonData.message).to.include('Authorization');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/weather/London",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "weather", "London"]
+            },
+            "description": "Test accessing protected endpoint without token"
+          },
+          "response": []
+        },
+        {
+          "name": "Unauthorized - Invalid Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates invalid token', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "    pm.expect(jsonData.message).to.include('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid.token.here",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/weather/London",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "weather", "London"]
+            },
+            "description": "Test with an invalid JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Bad Request - Empty Cities Array",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message about cities array', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "    pm.expect(jsonData.message).to.include('cities');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cities\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/weather/multiple",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "weather", "multiple"]
+            },
+            "description": "Test validation with empty cities array"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
