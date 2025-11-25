@@ -56,7 +56,7 @@ src/
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/dawe014/web-service-integration-assignment.git
    cd web-service-integration-assignment
    ```
 
@@ -188,8 +188,6 @@ Import the included Postman collection for comprehensive testing:
 2. Run "Get Token" to authenticate
 3. Test all endpoints with automated tests
 
-📖 **See [POSTMAN_GUIDE.md](POSTMAN_GUIDE.md) for detailed instructions**
-
 ### Using cURL
 
 ```bash
@@ -266,10 +264,6 @@ All configuration is managed through environment variables:
 This is a group project for Web Services Integration and Security course.
 
 For questions or suggestions, please contact any of the team members listed above.
-
-## 📄 License
-
-ISC
 
 ---
 
